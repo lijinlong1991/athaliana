@@ -14,7 +14,8 @@
 
 ## Other data sets
 
-* Mouse data used in [artilce (pdf)](http://valdarlab.unc.edu/papers/genetics_2006_covariates_print.pdf)
+* Mouse data http://mus.well.ox.ac.uk/mouse/HS/
+    * [artilce (pdf)](http://valdarlab.unc.edu/papers/genetics_2006_covariates_print.pdf)
 
 Sources
 

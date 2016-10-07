@@ -1,0 +1,22 @@
+Package: athaliana
+Type: Package
+Title: Functions to work with the A. thaliana data set
+Version: 0.0.1
+Date: 2016-10-07
+Authors@R: c(person("Andrey", "Ziyatdinov",
+    email = "andrey.ziyatdinov@upc.edu", role = c("aut", "cre")))
+Maintainer: Andrey Ziyatdinov <andrey.ziyatdinov@upc.edu>
+Description: athaliana is an R data package for the A. thaliana data set
+  <https://github.com/Gregor-Mendel-Institute/atpolydb>. 
+License: GPL (>= 3)
+URL: https://github.com/variani/athaliana
+Imports: 
+    methods,
+    plyr,
+    ggplot2
+Suggests: 
+    testthat,
+    utils
+Collate: 
+    'package.R'
+    'download.R'

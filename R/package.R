@@ -5,8 +5,12 @@
 #' @name athalianaPackage
 #' @docType package
 #'
+#' @importFrom stringr str_replace str_replace_all
+#'
+#' @import dplyr
 #' @import methods
-#' @import plyr
+#' @import tibble
+#' @import magrittr
 #' @import ggplot2
 {}
 

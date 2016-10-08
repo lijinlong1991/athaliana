@@ -4,31 +4,31 @@
 #--------------------
 
 #' @export
-athaliana.guess.phendir <- function() 
+athaliana_dir_rawdata <- function() 
 {
   "~/git/variani/athaliana/rawdata/"
 }
 
 #' @export
-athaliana.guess.phenfilename <- function() 
+athaliana_filename_phen <- function() 
 {
-  url <- athaliana.guess.phenurl()
+  url <- athaliana_url_phen()
   basename(url)
 }
 
 
 #' @export
-athaliana.guess.phenfile <- function() 
+athaliana_file_phen <- function() 
 {
-  file.path(athaliana.guess.phendir(), athaliana.guess.phenfilename())
+  file.path(athaliana_dir_rawdata(), athaliana_filename_phen())
 }
 
 
 
 #' @export
-athaliana.guess.phenfile <- function() 
+athaliana_file_phen <- function() 
 {
-  file.path(athaliana.guess.phendir(), "phenotype_published_raw.tsv")
+  file.path(athaliana_dir_rawdata(), "phenotype_published_raw.tsv")
 }
 
 #--------------------
@@ -36,7 +36,7 @@ athaliana.guess.phenfile <- function()
 #--------------------
 
 #' @export
-athaliana.guess.phenurl <- function() 
+athaliana_url_phen <- function() 
 {
   "https://raw.githubusercontent.com/Gregor-Mendel-Institute/atpolydb/master/miscellaneous_data/phenotype_published_raw.tsv"
 }
@@ -47,18 +47,88 @@ athaliana.guess.phenurl <- function()
 #--------------------
 
 #' @export
-athaliana.download.phen <- function(dir = athaliana.guess.phendir(), 
-  url = athaliana.guess.phenurl(),
+athaliana_download_phen <- function(dir = athaliana_dir_rawdata(), 
+  url = athaliana_url_phen(),
   ...)
 {
   ### inc
   stopifnot(requireNamespace("utils"))
   
   ### args
-  stopifnot(file.exists(dir))
+  if(!file.exists(dir)) {
+    message(" * creating rawdata directory to store phenotypes: ", dir)
+    ret <- dir.create(dir)
+  }
   
   ### download 
   destfile <- file.path(dir, basename(url))
-  ret <- download.file(url, destfile, ...)
+  ret <- utils::download.file(url, destfile, ...)
 }
+
+
+#----------------------------
+# Load
+#----------------------------
+
+athaliana_phen <- function(dir = athaliana_dir_rawdata(),
+  filename = athaliana_filename_phen(),
+  traits, group, 
+  names = c("clean", "raw"))
+{
+  ### arg
+  names <- match.arg(names)
+  
+  ### inc
+  stopifnot(requireNamespace("readr"))
+  
+  ### files/dirs
+  stopifnot(file.exists(dir))
+  
+  file <- file.path(dir, filename)
+  stopifnot(file.exists(file))
+  
+  ### read
+  phen <- readr::read_tsv(file)
+  
+  ### names
+  if(names == "clean") {
+    nms <- names(phen)
+    
+    nms <- str_replace(nms, "^[0-9]*_", "")
+
+    nms <- str_replace_all(nms, " ", "_")
+    nms <- str_replace_all(nms, "-", "_")
+    
+    nms <- str_replace(nms, "<i>", "")
+    nms <- str_replace(nms, "</i>", "")
+    
+    names(phen) <- nms
+  }
+  
+  ### select columns  
+  if(!all(c(missing(traits), missing(group)))) {
+    vars <- phen %>% names %>% head(2)
+    
+    if(!missing(group)) {
+      traits <- switch(group,
+        "strong" = athaliana_traits_strong(),
+        stop())
+      stopifnot(all(traits %in% names(phen)))
+      
+      vars <- c(vars, traits)
+    }
+    
+    if(!missing(traits)) {
+      stopifnot(all(traits %in% names(phen)))
+      
+      vars <- c(vars, traits)
+      vars <- unique(vars)
+    }
+    
+    phen <- select(phen, one_of(vars))
+  }
+    
+  return(phen)
+}
+
 

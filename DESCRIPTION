@@ -12,11 +12,17 @@ License: GPL (>= 3)
 URL: https://github.com/variani/athaliana
 Imports: 
     methods,
-    plyr,
+    magrittr,
+    stringr,
+    dplyr,
+    tibble,
     ggplot2
 Suggests: 
     testthat,
-    utils
+    tidyverse,
+    utils,
+    readr
 Collate: 
     'package.R'
+    'traits.R'
     'download.R'

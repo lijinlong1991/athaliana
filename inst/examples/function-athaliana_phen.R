@@ -1,3 +1,4 @@
+# for "tidy" summarize: http://stackoverflow.com/questions/27879638/use-dplyrs-summarise-each-to-return-one-row-per-function
 library(tidyverse)
 
 traits <- athaliana_traits_strong()

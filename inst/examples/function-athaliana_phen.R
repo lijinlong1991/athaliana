@@ -6,9 +6,9 @@ traits <- athaliana_traits_strong()
 phen <- athaliana_phen(traits = traits)
 nobs <- nrow(phen)
 
-num_na <- phen %>% summarize_all(. %>% is.na %>% sum) %>% as.integer
+num_na <- phen %>% summarize_each(funs(. %>% is.na %>% sum)) %>% as.integer
 
-t <- tibble(variable = names(phen), num_na = num_na) %>%
+t <- data_frame(variable = names(phen), num_na = num_na) %>%
   arrange(desc(num_na)) %>%
   mutate( 
   variable = factor(variable, levels = unique(variable)),

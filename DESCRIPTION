@@ -7,22 +7,23 @@ Authors@R: c(person("Andrey", "Ziyatdinov",
     email = "andrey.ziyatdinov@upc.edu", role = c("aut", "cre")))
 Maintainer: Andrey Ziyatdinov <andrey.ziyatdinov@upc.edu>
 Description: athaliana is an R data package for the A. thaliana data set
-  <https://github.com/Gregor-Mendel-Institute/atpolydb>. 
+    <https://github.com/Gregor-Mendel-Institute/atpolydb>.
 License: GPL (>= 3)
 URL: https://github.com/variani/athaliana
-Imports: 
+Imports:
     methods,
     magrittr,
     stringr,
     dplyr,
-    tibble,
     ggplot2
-Suggests: 
+Suggests:
     testthat,
     tidyverse,
     utils,
     readr
-Collate: 
+Collate:
     'package.R'
     'traits.R'
     'download.R'
+    'stats.R'
+RoxygenNote: 5.0.1

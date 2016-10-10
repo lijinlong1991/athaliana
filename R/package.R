@@ -6,11 +6,10 @@
 #' @docType package
 #'
 #' @importFrom stringr str_replace str_replace_all
+#' @importFrom dplyr select summarize_each funs
+#' @importFrom magrittr %>%
 #'
-#' @import dplyr
 #' @import methods
-#' @import tibble
-#' @import magrittr
 #' @import ggplot2
 {}
 

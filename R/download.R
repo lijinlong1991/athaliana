@@ -181,14 +181,23 @@ athaliana_phen <- function(file = file.path(athaliana_path(), athaliana_dir_rawd
     
     phen <- subset(phen, select = vars)
   }
-    
+  
+  ### derive new columns
+  phen <- mutate(phen, 
+    id = as.character(ecotype_id))
+
   return(phen)
 }
 
 
 #' @export
-athaliana_snp <- function(file = athaliana_file_snp())
+athaliana_snp <- function(file = athaliana_file_snp(), n,
+  method = c("dplyr", "fread", "bycol"), 
+  verbose = 1)
 {
+  ### args
+  method <- match.arg(method)
+  
   ### inc
   stopifnot(requireNamespace("readr"))
   
@@ -203,6 +212,93 @@ athaliana_snp <- function(file = athaliana_file_snp())
   
   ### read: version 2 via reading line by line
   # @ http://stackoverflow.com/questions/17288197/reading-a-csv-file-organized-horizontally
+  # code example: read_lines(file, skip = 3, 1) %>% str_split(",") %>% unlist
+  
+  # head line
+  ids <- athaliana_ids_snp(file = file)
+  
+  f <- function(x) 2 * (x - 1.5)
+  
+  ### read genotypes by means of `method`
+  if(method == "dplyr") { 
+    lines <- readr::read_lines(file, skip = 2, n_max = n)
+    
+    mat <- lines %>%
+      lapply(. %>% str_split(",") %>% unlist %>% tail(-2) %>%
+        as.factor %>% as.numeric %>% f %>% tibble) %>%
+      do.call("bind_cols", .)
+   
+    names(mat) <- paste0("snp_", 1:ncol(mat))
+  } 
+  else if(method == "bycol") {
+    lines <- readr::read_lines(file, skip = 2, n_max = n)
+    
+    mat <- matrix(as.numeric(NA), nrow = length(ids), ncol = length(lines))
+    for(i in 1:length(lines)) {
+      if(verbose) {
+        if(i %% 1e4 == 0) {
+          cat(" * marker", i, "/", length(lines), "\n")
+        }
+      }
+  
+      val <- lines[i] %>% str_split(",") %>% unlist %>% tail(-2) %>%
+        as.factor %>% as.numeric %>% f
+    
+      mat[, i] <- val
+    }
+    rownames(mat) <- ids  
+  } 
+  else if(method == "fread") {
+    requireNamespace("data.table")
+    
+    dat <- data.table::fread(file, skip = 1, header = TRUE, nrows = n)
+    
+    mat <- matrix(as.numeric(NA), nrow = length(ids), ncol = nrow(dat))
+    for(i in 1:nrow(dat)) {
+      if(verbose) {
+        if(i %% 1e4 == 0) {
+          cat(" * marker", i, "/", nrow(dat), "\n")
+        }
+      }
+      
+      val <- as.character(dat[i, ]) %>% tail(-2) %>%
+        as.factor %>% as.numeric %>% f
+      
+      mat[, i] <- val
+    }
+  } 
+  else {
+    stop("`method` unknown")
+  }
 
-  # read_lines(file, skip = 3, 1) %>% str_split(",") %>% unlist
+    
+  return(mat) 
+}
+
+#----------------------------
+# IDs
+#----------------------------
+
+#' @export
+athaliana_ids_phen <- function(...)
+{
+  phen <- athaliana_phen(..., traits = NULL)
+
+  phen[["id"]]
+}
+
+#' @export
+athaliana_ids_snp <- function(file = athaliana_file_snp())
+{
+  ### inc
+  stopifnot(requireNamespace("readr"))
+  
+  ### files/dirs
+  stopifnot(file.exists(file))
+  
+  # head line
+  hline <- readr::read_lines(file, skip = 1, n_max = 1)
+  ids <- hline %>% str_split(",") %>% unlist %>% tail(-2)
+  
+  return(ids)
 }

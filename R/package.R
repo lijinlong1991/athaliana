@@ -5,7 +5,7 @@
 #' @name athalianaPackage
 #' @docType package
 #'
-#' @importFrom stringr str_replace str_replace_all
+#' @importFrom stringr str_replace str_replace_all str_split
 #' @importFrom dplyr select summarize_each funs
 #' @importFrom magrittr %>%
 #'

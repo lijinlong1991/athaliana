@@ -59,6 +59,12 @@ athaliana_file_snp <- function()
     athaliana_filename_snp())
 }
 
+#' @export
+athaliana_feather_snp <- function() 
+{
+  "snp.feather"
+}
+
 #--------------------
 # URLs
 #--------------------
@@ -125,7 +131,7 @@ athaliana_download_snp <- function(dir = file.path(athaliana_path(), athaliana_d
 
 
 #----------------------------
-# Load
+# Read phen
 #----------------------------
 
 athaliana_phen <- function(file = file.path(athaliana_path(), athaliana_dir_rawdata(), athaliana_filename_phen()),
@@ -189,14 +195,49 @@ athaliana_phen <- function(file = file.path(athaliana_path(), athaliana_dir_rawd
   return(phen)
 }
 
+#----------------------------
+# Read/feather/get phen
+#----------------------------
 
 #' @export
-athaliana_snp <- function(file = athaliana_file_snp(), n,
-  method = c("dplyr", "fread", "bycol"), 
+athaliana_write_snp <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdata()), 
+  ...)
+{
+  ### inc
+  stopifnot(requireNamespace("feather"))
+
+  ### read SNP data
+  snp <- athaliana_read_snp(...)
+
+  ### read feather
+  path <- file.path(dir, athaliana_feather_snp())
+  feather::write_feather(snp, path) 
+} 
+
+#' @export
+athaliana_snp <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdata()), 
+  ...)
+{
+  ### inc
+  stopifnot(requireNamespace("feather"))
+
+  ### write feather
+  path <- file.path(dir, athaliana_feather_snp())
+  feather::read_feather(path)
+} 
+
+
+#' @export
+athaliana_read_snp <- function(file = athaliana_file_snp(), 
+  n, method = c("dplyr", "fread", "bycol"),
+  format = c("numeric", "raw"),
   verbose = 1)
 {
   ### args
   method <- match.arg(method)
+  format <- match.arg(format)  
+  
+  missing.n <- missing(n)
   
   ### inc
   stopifnot(requireNamespace("readr"))
@@ -221,14 +262,33 @@ athaliana_snp <- function(file = athaliana_file_snp(), n,
   
   ### read genotypes by means of `method`
   if(method == "dplyr") { 
-    lines <- readr::read_lines(file, skip = 2, n_max = n)
+    if(missing.n) {
+      lines <- readr::read_lines(file, skip = 2)
+    } else {
+      lines <- readr::read_lines(file, skip = 2, n_max = n)
+    }
     
-    mat <- lines %>%
-      lapply(. %>% str_split(",") %>% unlist %>% tail(-2) %>%
-        as.factor %>% as.numeric %>% f %>% tibble) %>%
-      do.call("bind_cols", .)
-   
+    mat <- switch(format, 
+      "numeric" = {
+        lines %>%
+        lapply(. %>% str_split(",") %>% unlist %>% tail(-2) %>%
+          as.factor %>% as.numeric %>% f %>%
+          tibble) %>%
+        do.call("bind_cols", .)
+      },
+      "raw" = {
+        lines %>%
+        lapply(. %>% str_split(",") %>% unlist %>% tail(-2) %>%
+          tibble) %>%
+        do.call("bind_cols", .)
+      },
+      stop())
+    
+    # add names of SNPs   
     names(mat) <- paste0("snp_", 1:ncol(mat))
+    
+    # add columns of IDs
+    mat <- bind_cols(tibble(id = ids), mat)
   } 
   else if(method == "bycol") {
     lines <- readr::read_lines(file, skip = 2, n_max = n)
@@ -271,7 +331,6 @@ athaliana_snp <- function(file = athaliana_file_snp(), n,
     stop("`method` unknown")
   }
 
-    
   return(mat) 
 }
 

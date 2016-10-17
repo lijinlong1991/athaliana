@@ -4,26 +4,21 @@ athaliana
 About
 -----
 
-`athaliana` is an R data package for the A. thaliana data set <https://github.com/Gregor-Mendel-Institute/atpolydb>.
+`athaliana` is an R *data* package for the A. thaliana data set <https://github.com/Gregor-Mendel-Institute/atpolydb>.
 
 Code examples
 -------------
 
-### Get necessary data with a few functions
+### A simple polygenic model
 
 Here we are inerested to run a polygenic model for one of the traits (`FRI`).
-
--   The necessary data are the table of phenotypes & the relatedness matrix (pre-calculated from the SNPs data, see `athaliana_compute_relmat` function).
--   The mixed model comes from the `lme4qtl` R package.
 
 ``` r
 phen <- athaliana_phen(traits = "FRI")
 relmat <- athaliana_relmat()
 
 library(lme4qtl)
-m <- relmatLmer(FRI ~ (1|id), phen, relmat = list(id = relmat))
-
-m
+(m <- relmatLmer(FRI ~ (1|id), phen, relmat = list(id = relmat)))
 ```
 
     Linear mixed model fit by REML ['lmerMod']

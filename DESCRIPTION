@@ -26,5 +26,6 @@ Collate:
     'package.R'
     'traits.R'
     'download.R'
+    'snp.R'
     'stats.R'
 RoxygenNote: 5.0.1

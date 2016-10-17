@@ -6,7 +6,7 @@
 #' @docType package
 #'
 #' @importFrom stringr str_replace str_replace_all str_split
-#' @importFrom dplyr select summarize_each funs bind_cols
+#' @importFrom dplyr select summarize_each funs bind_cols mutate
 #' @importFrom magrittr %>%
 #' @importFrom tibble tibble
 #'

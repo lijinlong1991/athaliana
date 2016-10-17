@@ -1,0 +1,50 @@
+---
+output:
+  md_document:
+    variant: markdown_github+backtick_code_blocks
+---
+
+```{r options, echo = F}
+opts_chunk$set(fig.path = "docs/figures/", comment = NA, tidy = F, message = F, warning = F, echo = F, results = 'verbatim')
+```
+
+```{r inc1}
+library(ggplot2)
+library(pander)
+```
+
+```{r inc2}
+library(devtools)
+load_all()
+```
+
+```{r settings}
+theme_set(theme_light())
+panderOptions('table.split.table', Inf)
+panderOptions('knitr.auto.asis', FALSE)
+```
+
+# athaliana
+
+## About
+
+`athaliana` is an R data package for the A. thaliana data set https://github.com/Gregor-Mendel-Institute/atpolydb. 
+
+## Code examples
+
+### Get necessary data with a few functions
+
+Here we are inerested to run a polygenic model for one of the traits (`FRI`).
+
+* The necessary data are the table of phenotypes & the relatedness matrix (pre-calculated from the SNPs data, see `athaliana_compute_relmat` function).
+* The mixed model comes from the `lme4qtl` R package.
+
+```{r poly, echo = T}
+phen <- athaliana_phen(traits = "FRI")
+relmat <- athaliana_relmat()
+
+library(lme4qtl)
+m <- relmatLmer(FRI ~ (1|id), phen, relmat = list(id = relmat))
+
+m
+```

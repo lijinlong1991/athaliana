@@ -34,7 +34,9 @@ panderOptions('knitr.auto.asis', FALSE)
 
 ### A simple polygenic model
 
-Here we are inerested to run a polygenic model for one of the traits (`FRI`).
+Here we are inerested to run a polygenic model 
+(the [lme4qtl](https://github.com/variani/lme4qtl) R package) 
+for one of the traits (`FRI`).
 
 ```{r poly, echo = T}
 phen <- athaliana_phen(traits = "FRI")
@@ -44,7 +46,7 @@ library(lme4qtl)
 (m <- relmatLmer(FRI ~ (1|id), phen, relmat = list(id = relmat)))
 ```
 
-Note that the residuals are not OK. That likely means the trait needs to be transformed.
+Note that the residuals are not OK. 
 
 ```{r poly_residuals, echo = T}
 r <- residuals(m)
@@ -54,3 +56,10 @@ qqline(r)
 
 hist(r, breaks = 30)
 ```
+
+That likely means the trait needs to be transformed.
+
+```{r hist_FRI}
+hist(phen$FRI, breaks = 30)
+```
+

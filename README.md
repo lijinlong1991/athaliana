@@ -11,7 +11,7 @@ Code examples
 
 ### A simple polygenic model
 
-Here we are inerested to run a polygenic model for one of the traits (`FRI`).
+Here we are inerested to run a polygenic model (the [lme4qtl](https://github.com/variani/lme4qtl) R package) for one of the traits (`FRI`).
 
 ``` r
 phen <- athaliana_phen(traits = "FRI")
@@ -34,7 +34,7 @@ library(lme4qtl)
     (Intercept)  
           1.182  
 
-Note that the residuals are not OK. That likely means the trait needs to be transformed.
+Note that the residuals are not OK.
 
 ``` r
 r <- residuals(m)
@@ -50,3 +50,7 @@ hist(r, breaks = 30)
 ```
 
 ![](docs/figures/poly_residuals-2.png)
+
+That likely means the trait needs to be transformed.
+
+![](docs/figures/hist_FRI-1.png)

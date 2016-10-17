@@ -48,5 +48,7 @@ Note that the residuals are not OK. That likely means the trait need to be trans
 
 ```{r poly_residuals, echo = T}
 r <- residuals(m)
-qqnorm(r); qqline(r)
+
+qqnorm(r)
+qqline(r)
 ```

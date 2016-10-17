@@ -32,4 +32,13 @@ library(lme4qtl)
     Number of obs: 164, groups:  id, 164
     Fixed Effects:
     (Intercept)  
-          1.182
+          1.182  
+
+Note that the residuals are not OK. That likely means the trait need to be transformed.
+
+``` r
+r <- residuals(m)
+qqnorm(r); qqline(r)
+```
+
+![](docs/figures/poly_residuals-1.png)

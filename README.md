@@ -34,7 +34,7 @@ library(lme4qtl)
     (Intercept)  
           1.182  
 
-Note that the residuals are not OK. That likely means the trait need to be transformed.
+Note that the residuals are not OK. That likely means the trait needs to be transformed.
 
 ``` r
 r <- residuals(m)
@@ -44,3 +44,9 @@ qqline(r)
 ```
 
 ![](docs/figures/poly_residuals-1.png)
+
+``` r
+hist(r, breaks = 30)
+```
+
+![](docs/figures/poly_residuals-2.png)

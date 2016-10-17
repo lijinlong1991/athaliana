@@ -44,11 +44,13 @@ library(lme4qtl)
 (m <- relmatLmer(FRI ~ (1|id), phen, relmat = list(id = relmat)))
 ```
 
-Note that the residuals are not OK. That likely means the trait need to be transformed.
+Note that the residuals are not OK. That likely means the trait needs to be transformed.
 
 ```{r poly_residuals, echo = T}
 r <- residuals(m)
 
 qqnorm(r)
 qqline(r)
+
+hist(r, breaks = 30)
 ```

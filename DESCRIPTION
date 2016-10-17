@@ -20,7 +20,8 @@ Suggests:
     testthat,
     tidyverse,
     utils,
-    readr
+    readr,
+    feather
 Collate:
     'package.R'
     'traits.R'

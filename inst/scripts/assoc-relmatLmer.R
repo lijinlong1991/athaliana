@@ -4,12 +4,17 @@ library(plyr)
 
 library(lme4qtl)
 
+### par
+chr <- 4
+
+cores <- 2
+
 ### data
-phen <- athaliana_phen(traits = "FRI")
+phen <- athaliana_phen(traits = "FRI", rows_order = "snp")
 relmat <- athaliana_relmat()
 
 if(!exists("gdat")) {
-  gdat <- athaliana_snp()
+  gdat <- athaliana_snp(chr = 4)
   
   gdat <- bind_cols(phen["FRI"], gdat)
 }
@@ -20,7 +25,8 @@ snps <- names(dat) %>% grep("^snp", ., value = TRUE)
 
 mod0 <- relmatLmer(FRI ~ (1|id), dat, relmat = list(id = relmat), REML = FALSE)
 
-#assoc <- assocLmer(FRI ~ (1|id), dat, relmat = list(id = relmat), data_snp_cov = subset(dat, select = snps), batch_size = 10)
+assoc <- assocLmer(FRI ~ (1|id), dat, relmat = list(id = relmat), data_snp_cov = subset(dat, select = snps), batch_size = 10, cores = 2)
+
 stop()
 
 ### polygenic model

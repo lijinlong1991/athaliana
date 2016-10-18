@@ -65,6 +65,12 @@ athaliana_feather_snp <- function()
   "snp.feather"
 }
 
+#' @export
+athaliana_feather_annot <- function() 
+{
+  "annot.feather"
+}
+
 #--------------------
 # URLs
 #--------------------
@@ -130,74 +136,55 @@ athaliana_download_snp <- function(dir = file.path(athaliana_path(), athaliana_d
 }
 
 
-#----------------------------
-# Read phen
-#----------------------------
+#--------------------------------------
+# Read/feather SNP annotation data
+#--------------------------------------
 
-athaliana_phen <- function(file = file.path(athaliana_path(), athaliana_dir_rawdata(), athaliana_filename_phen()),
-  traits, group, 
-  names = c("clean", "raw"))
+#' @export
+athaliana_write_annot <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdata()), 
+  ...)
 {
-  ### arg
-  names <- match.arg(names)
-  
   ### inc
-  stopifnot(requireNamespace("readr"))
-  
-  ### files/dirs
-  stopifnot(file.exists(file))
-  
-  ### read
-  phen <- readr::read_tsv(file)
-  
-  ### names
-  if(names == "clean") {
-    nms <- names(phen)
-    
-    nms <- str_replace(nms, "^[0-9]*_", "")
+  stopifnot(requireNamespace("feather"))
 
-    nms <- str_replace_all(nms, " ", "_")
-    nms <- str_replace_all(nms, "-", "_")
-    
-    nms <- str_replace(nms, "<i>", "")
-    nms <- str_replace(nms, "</i>", "")
-    
-    names(phen) <- nms
-  }
-  
-  ### select columns  
-  if(!all(c(missing(traits), missing(group)))) {
-    vars <- phen %>% names %>% head(2)
-    
-    if(!missing(group)) {
-      traits <- switch(group,
-        "strong" = athaliana_traits_strong(),
-        stop())
-      stopifnot(all(traits %in% names(phen)))
-      
-      vars <- c(vars, traits)
-    }
-    
-    if(!missing(traits)) {
-      stopifnot(all(traits %in% names(phen)))
-      
-      vars <- c(vars, traits)
-      vars <- unique(vars)
-    }
-    
-    phen <- subset(phen, select = vars)
-  }
-  
-  ### derive new columns
-  phen <- mutate(phen, 
-    id = as.character(ecotype_id))
+  ### read SNP annot. data
+  annot <- athaliana_read_annot(...)
 
-  return(phen)
+  ### read feather
+  path <- file.path(dir, athaliana_feather_annot())
+  feather::write_feather(annot, path) 
+} 
+
+
+#' @export
+athaliana_read_annot <- function(file = athaliana_file_snp(), 
+  verbose = 1)
+{
+  annot <- read_csv(file, skip = 1, 
+    col_type = cols_only(Chromosome = col_integer(), Positions = col_integer()))
+  
+  annot <- bind_cols(tibble(snp = paste0("snp_", 1:nrow(annot))), annot)
+  
+  names(annot) <- c("snp", "chr", "pos")
+  
+  return(annot)
 }
 
-#----------------------------
-# Read/feather/get phen
-#----------------------------
+#' @export
+athaliana_annot <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdata()), 
+  ...)
+{
+  ### inc
+  stopifnot(requireNamespace("feather"))
+
+  ### write feather
+  path <- file.path(dir, athaliana_feather_annot())
+  feather::read_feather(path)
+} 
+
+#--------------------------------------
+# Read/feather SNP data
+#--------------------------------------
 
 #' @export
 athaliana_write_snp <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdata()), 
@@ -216,6 +203,7 @@ athaliana_write_snp <- function(dir = file.path(athaliana_path(), athaliana_dir_
 
 #' @export
 athaliana_snp <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdata()), 
+  chr,
   ...)
 {
   ### inc
@@ -223,7 +211,20 @@ athaliana_snp <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdat
 
   ### write feather
   path <- file.path(dir, athaliana_feather_snp())
-  feather::read_feather(path)
+  snp <- feather::read_feather(path)
+  
+  ### filter by chr
+  if(!missing(chr)) {
+    annot <- athaliana_annot(dir = dir)
+    
+    chr_val <- chr
+    snps <- with(annot, snp[chr %in% chr_val])
+    
+    snp <- subset(snp, select = c("id", snps))
+  }
+  
+  ### return
+  return(snp)
 } 
 
 
@@ -332,32 +333,4 @@ athaliana_read_snp <- function(file = athaliana_file_snp(),
   }
 
   return(mat) 
-}
-
-#----------------------------
-# IDs
-#----------------------------
-
-#' @export
-athaliana_ids_phen <- function(...)
-{
-  phen <- athaliana_phen(..., traits = NULL)
-
-  phen[["id"]]
-}
-
-#' @export
-athaliana_ids_snp <- function(file = athaliana_file_snp())
-{
-  ### inc
-  stopifnot(requireNamespace("readr"))
-  
-  ### files/dirs
-  stopifnot(file.exists(file))
-  
-  # head line
-  hline <- readr::read_lines(file, skip = 1, n_max = 1)
-  ids <- hline %>% str_split(",") %>% unlist %>% tail(-2)
-  
-  return(ids)
 }

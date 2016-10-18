@@ -1,7 +1,7 @@
 
-#--------------------
-# Relatedness matrix
-#--------------------
+#-----------------------------------
+# Genetic Relatedness Matrix (GRM)
+#-----------------------------------
 
 #' @export
 athaliana_compute_relmat <- function(snp) 

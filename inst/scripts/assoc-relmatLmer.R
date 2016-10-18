@@ -11,17 +11,16 @@ relmat <- athaliana_relmat()
 if(!exists("gdat")) {
   gdat <- athaliana_snp()
   
-  dat <- bind_cols(phen["FRI"], gdat)
+  gdat <- bind_cols(phen["FRI"], gdat)
 }
 
-dat <- dat[1:20]
+dat <- gdat[1:20]
 
 snps <- names(dat) %>% grep("^snp", ., value = TRUE)
 
 mod0 <- relmatLmer(FRI ~ (1|id), dat, relmat = list(id = relmat), REML = FALSE)
 
-assoc <- assocLmer(FRI ~ (1|id), dat, relmat = list(id = relmat), data_snp_cov = subset(dat, select = snps), batch_size = 10)
-
+#assoc <- assocLmer(FRI ~ (1|id), dat, relmat = list(id = relmat), data_snp_cov = subset(dat, select = snps), batch_size = 10)
 stop()
 
 ### polygenic model

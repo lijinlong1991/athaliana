@@ -66,9 +66,9 @@ athaliana_feather_snp <- function()
 }
 
 #' @export
-athaliana_feather_annot <- function() 
+athaliana_feather_map <- function() 
 {
-  "annot.feather"
+  "map.feather"
 }
 
 #--------------------
@@ -137,48 +137,52 @@ athaliana_download_snp <- function(dir = file.path(athaliana_path(), athaliana_d
 
 
 #--------------------------------------
-# Read/feather SNP annotation data
+# Read/feather SNP mapation data
 #--------------------------------------
 
 #' @export
-athaliana_write_annot <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdata()), 
+athaliana_write_map <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdata()), 
   ...)
 {
   ### inc
   stopifnot(requireNamespace("feather"))
 
-  ### read SNP annot. data
-  annot <- athaliana_read_annot(...)
+  ### read SNP map. data
+  map <- athaliana_read_map(...)
 
   ### read feather
-  path <- file.path(dir, athaliana_feather_annot())
-  feather::write_feather(annot, path) 
+  path <- file.path(dir, athaliana_feather_map())
+  feather::write_feather(map, path) 
 } 
 
 
 #' @export
-athaliana_read_annot <- function(file = athaliana_file_snp(), 
+athaliana_read_map <- function(file = athaliana_file_snp(), 
   verbose = 1)
 {
-  annot <- read_csv(file, skip = 1, 
-    col_type = cols_only(Chromosome = col_integer(), Positions = col_integer()))
+  ### inc
+  stopifnot(requireNamespace("readr"))
   
-  annot <- bind_cols(tibble(snp = paste0("snp_", 1:nrow(annot))), annot)
+  ### read  
+  map <- readr::read_csv(file, skip = 1, 
+    col_type = readr::cols_only(Chromosome = readr::col_integer(), Positions = readr::col_integer()))
   
-  names(annot) <- c("snp", "chr", "pos")
+  map <- bind_cols(tibble(snp = paste0("snp_", 1:nrow(map))), map)
   
-  return(annot)
+  names(map) <- c("snp", "chr", "pos")
+  
+  return(map)
 }
 
 #' @export
-athaliana_annot <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdata()), 
+athaliana_map <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdata()), 
   ...)
 {
   ### inc
   stopifnot(requireNamespace("feather"))
 
   ### write feather
-  path <- file.path(dir, athaliana_feather_annot())
+  path <- file.path(dir, athaliana_feather_map())
   feather::read_feather(path)
 } 
 
@@ -215,10 +219,10 @@ athaliana_snp <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdat
   
   ### filter by chr
   if(!missing(chr)) {
-    annot <- athaliana_annot(dir = dir)
+    map <- athaliana_map(dir = dir)
     
     chr_val <- chr
-    snps <- with(annot, snp[chr %in% chr_val])
+    snps <- with(map, snp[chr %in% chr_val])
     
     snp <- subset(snp, select = c("id", snps))
   }
@@ -249,7 +253,7 @@ athaliana_read_snp <- function(file = athaliana_file_snp(),
   ### read: version 1 (slow)
   #dat <- readr::read_csv(file, skip = 1)
 
-  #annot <- select(dat, 1:2)
+  #map <- select(dat, 1:2)
   #dat <- t(select(dat, -c(1:2))) 
   
   ### read: version 2 via reading line by line

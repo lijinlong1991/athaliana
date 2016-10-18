@@ -24,26 +24,60 @@ cores <- 2
 ### Packages
 
 ```{r inc}
+library(dplyr)
+library(Matrix)
+
 library(athaliana)
 
-library(dplyr)
-
 library(lme4qtl)
+
+library(qqman)
 ```
 
 ## Load the data
 
-```{r data, cache = T}
+### Phenotypes
+
+```{r data_phen, cache = T}
 phen <- athaliana_phen(traits = "FRI", rows_order = "snp")
+```
+
+```{r tab_phen, echo = FALSE, results = "asis"}
+kable(head(phen))
+```
+
+### Pre-computed GRM
+
+```{r data_relmat, cache = T}
 relmat <- athaliana_relmat()
 ```
 
-```{r gdata, cache = TRUE}
-gdat <- athaliana_snp(chr = 4)
-  
-gdat <- bind_cols(phen["FRI"], gdat)
+```{r plot_relmat, fig.show = "hold", cache = TRUE, dependson = "data_relmat"}
+image(Matrix(relmat))
+image(Matrix(relmat[1:5, 1:5]))
+```
 
+```{r tab_relmat, echo = FALSE, results = "asis"}
+kable(relmat[1:5, 1:5], digits = 2)
+```
+
+### Genotypes
+
+```{r gdata, cache = TRUE}
+gdat <- athaliana_snp(chr = chr)
+  
 gdat_subset <- gdat[1:20]
+```
+
+### Annotation
+
+```{r annot, cache = T}
+ids <- with(phen, id[!is.na(FRI)])
+annot <- athaliana_compute_annot(gdat, ids = ids)
+```
+
+```{r tab_gdat, echo = FALSE, results = "asis"}
+kable(head(select(gdat, 1:5)))
 ```
 
 ## Polygenic model
@@ -52,44 +86,41 @@ gdat_subset <- gdat[1:20]
 (poly <- relmatLmer(FRI ~ (1|id), phen, relmat = list(id = relmat)))
 ```
 
-## Association study of a few snps
+## Association study of a small subset of snps
 
 ```{r assoc, cache = T}
 snps <- names(gdat_subset) %>% grep("^snp", ., value = TRUE)
 
-assoc <- assocLmer(FRI ~ (1|id), gdat_subset, relmat = list(id = relmat), 
+assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), 
   data_snp_cov = subset(gdat_subset, select = snps), 
   batch_size = 10, cores = cores)
 ```
 
 
-## GWAS
+## Association study on all snps
 
 ```{r gwas, eval = F}
 snps <- names(gdat) %>% grep("^snp", ., value = TRUE)
 
-gwas <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), 
-  data_snp_cov = gdat[-1],
+assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), 
+  data_snp_cov = subset(gdat, select = snps),
   batch_size = 100, cores = cores)
 ```
 
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r load_gwas, cache = T}
+data("assoc.FRI", package = "athaliana") 
 ```
 
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r tab_gwas, echo = FALSE, results = "asis", dependson = "load_gwas"}
+kable(head(assoc))
 ```
+
+```{r plot_gwas, fig.show = "hold", cache = T, dependson = "load_gwas"}
+qq(assoc$pval)
+manhattan(assoc, chr = "chr", bp = "pos", p = "pval", snp = "snp",
+  suggestiveline = FALSE, genomewideline = -log10(0.05 / nrow(assoc)))
+```
+
 
 Also a quote using `>`:
 

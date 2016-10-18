@@ -2,8 +2,9 @@ rawdata/
 
 man/
 inst/doc
+data/
 
+vignettes/template*
 vignettes/*_cache/
 vignettes/*_files/
 vignettes/*\.html
-

@@ -25,7 +25,8 @@ Suggests:
     feather,
     knitr,
     rmarkdown,
-    doParallel
+    doParallel,
+    rrBLUP
 Collate: 
     'package.R'
     'traits.R'

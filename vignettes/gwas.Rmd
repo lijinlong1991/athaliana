@@ -69,15 +69,14 @@ gdat <- athaliana_snp(chr = chr)
 gdat_subset <- gdat[1:20]
 ```
 
+```{r tab_gdat, echo = FALSE, results = "asis"}
+kable(head(select(gdat, 1:5)))
+```
+
 ### Annotation
 
 ```{r annot, cache = T}
-ids <- with(phen, id[!is.na(FRI)])
-annot <- athaliana_compute_annot(gdat, ids = ids)
-```
-
-```{r tab_gdat, echo = FALSE, results = "asis"}
-kable(head(select(gdat, 1:5)))
+annot <- athaliana_annot()
 ```
 
 ## Polygenic model
@@ -109,6 +108,12 @@ assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat),
 
 ```{r load_gwas, cache = T}
 data("assoc.FRI", package = "athaliana") 
+
+assoc <- left_join(as_data_frame(assoc), annot, by = "snp")
+```
+
+```{r assoc_common, cache = T}
+assoc_common <- assoc %>% filter(mac_FRI >= 20)
 ```
 
 ```{r tab_gwas, echo = FALSE, results = "asis", dependson = "load_gwas"}
@@ -121,6 +126,11 @@ manhattan(assoc, chr = "chr", bp = "pos", p = "pval", snp = "snp",
   suggestiveline = FALSE, genomewideline = -log10(0.05 / nrow(assoc)))
 ```
 
+```{r plot_gwas_common, fig.show = "hold", cache = T, dependson = "load_gwas"}
+qq(assoc_common$pval)
+manhattan(assoc_common, chr = "chr", bp = "pos", p = "pval", snp = "snp",
+  suggestiveline = FALSE, genomewideline = -log10(0.05 / nrow(assoc_common)))
+```
 
 Also a quote using `>`:
 

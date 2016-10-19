@@ -3,6 +3,26 @@
 #-----------------------------------
 
 #' @export
+athaliana_feather_annot <- function() 
+{
+  "annot.feather"
+}
+
+
+#' @export
+athaliana_annot <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdata()), 
+  ...)
+{
+  ### inc
+  stopifnot(requireNamespace("feather"))
+
+  ### write feather
+  path <- file.path(dir, athaliana_feather_annot())
+  feather::read_feather(path)
+} 
+
+
+#' @export
 athaliana_compute_annot <- function(snp, ids, 
   cores = getOption("cores")) 
 {
@@ -77,6 +97,29 @@ athaliana_compute_relmat <- function(snp)
   
   ### compute the var-covar matrix
   relmat <- tcrossprod(mat) / M
+  
+  rownames(relmat) <- ids
+  colnames(relmat) <- ids  
+  
+  return(relmat)
+}
+
+
+#' @export
+athaliana_compute_relmat_rrblup <- function(snp) 
+{
+  ### inc
+  stopifnot(requireNamespace("rrBLUP"))
+
+  ### prepare the matrix of genotypes: to be centered / scaled
+  mat <- as.matrix(snp[-1])
+
+  ### var
+  ids <- snp[["id"]]
+  rownames(mat) <- ids
+  
+  ### compute the var-covar matrix
+  relmat <- rrBLUP::A.mat(mat)
   
   rownames(relmat) <- ids
   colnames(relmat) <- ids  

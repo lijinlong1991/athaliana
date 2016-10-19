@@ -1,7 +1,8 @@
 # @ http://potatobreeding.cals.wisc.edu/wp-content/uploads/sites/21/2014/01/GWAS_tutorial.pdf
 
 ### read genotype markers
-markers <- read.csv("call_method_32.b",skip=1,header=T,as.is=T,check.names=FALSE)
+#markers <- read.csv("call_method_32.b",skip=1,header=T,as.is=T,check.names=FALSE)
+markers <- read.csv(athaliana_file_snp(),skip=1,header=T,as.is=T,check.names=FALSE)
 
 convert.snp <- function(x) 
 {
@@ -45,10 +46,16 @@ geno <- cbind(1:m,markers[,1:2],t(M))
 colnames(geno) <- c("marker","chrom","pos",gid)
 
 ### read phen. data
-pheno <- read.table("phenotype_published_raw.tsv",header=T,as.is=T,check.names=FALSE,sep="\t")
+#pheno <- read.table("phenotype_published_raw.tsv",header=T,as.is=T,check.names=FALSE,sep="\t")
+pheno <- read.table(athaliana_file_phen(),header=T,as.is=T,check.names=FALSE,sep="\t")
 
-pheno2 <- pheno[,c(1,3,10,35,43)]
-colnames(pheno2) <- c("ecoid","FT_LD","Dormancy","avrRpm","FRI")
+#pheno2 <- pheno[,c(1,3,10,35,43)]
+#colnames(pheno2) <- c("ecoid","FT_LD","Dormancy","avrRpm","FRI")
+
+pheno2 <- pheno[,c(1,43)]
+colnames(pheno2) <- c("ecoid","FRI")
 
 ### run GWAS
-ans.emmax <- GWAS(pheno=pheno2,geno=geno,P3D=TRUE,n.core=16,K=A)
+emmax <- GWAS(pheno=pheno2,geno=geno,P3D=TRUE,n.core=60,K=A)
+
+mm <- GWAS(pheno=pheno2,geno=geno,P3D=FALSE,n.core=60,K=A)

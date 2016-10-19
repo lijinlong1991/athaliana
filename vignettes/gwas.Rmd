@@ -31,6 +31,7 @@ library(athaliana)
 
 library(lme4qtl)
 
+library(solarius)
 library(qqman)
 ```
 
@@ -44,6 +45,11 @@ phen <- athaliana_phen(traits = "FRI", rows_order = "snp")
 
 ```{r tab_phen, echo = FALSE, results = "asis"}
 kable(head(phen))
+```
+
+```{r transofrm_phen}
+phen <- mutate(phen, 
+  inormal_FRI = solarius::transformTrait(FRI, "inormal"))
 ```
 
 ### Pre-computed GRM
@@ -82,37 +88,30 @@ annot <- athaliana_annot()
 ## Polygenic model
 
 ```{r poly, cache = T}
-(poly <- relmatLmer(FRI ~ (1|id), phen, relmat = list(id = relmat)))
+(poly <- relmatLmer(inormal_FRI ~ (1|id), phen, relmat = list(id = relmat)))
 ```
 
 ## Association study of a small subset of snps
 
 ```{r assoc, cache = T}
-snps <- names(gdat_subset) %>% grep("^snp", ., value = TRUE)
-
-assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), 
-  data_snp_cov = subset(gdat_subset, select = snps), 
-  batch_size = 10, cores = cores)
+assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), data_snpcov = gdat_subset, batch_size = 10, cores = cores)
 ```
 
 
 ## Association study on all snps
 
 ```{r gwas, eval = F}
-snps <- names(gdat) %>% grep("^snp", ., value = TRUE)
-
-assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), 
-  data_snp_cov = subset(gdat, select = snps),
-  batch_size = 100, cores = cores)
+assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), data_snpcov = gdat, batch_size = 100, cores = cores)
+gwas <- assocLmer(inormal_FRI ~ (1|id), phen, relmat = list(id = relmat), data_snpcov = gdat, format_snpcov = "-11", batch_size = 100, cores = cores)
 ```
 
 ```{r load_gwas, cache = T}
-data("assoc.FRI", package = "athaliana") 
+data("assoc.FRI.rrblup", package = "athaliana") 
 
 assoc <- left_join(as_data_frame(assoc), annot, by = "snp")
 ```
 
-```{r assoc_common, cache = T}
+```{r assoc_common, cache = T, dependson = "load_gwas"}
 assoc_common <- assoc %>% filter(mac_FRI >= 20)
 ```
 

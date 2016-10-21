@@ -87,6 +87,9 @@ m <- relmatLmer(y ~ g + (1|id), dat, relmat = list(id = relmat))
 ### `lmmlite` model
 library(lmmlite)
 
+e <- eigen_rotation(K, y2, X3)
+out <- fitLMM(e$Kva, e$y, e$X)
+
 
 
 

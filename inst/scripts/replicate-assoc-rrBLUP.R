@@ -11,8 +11,10 @@ library(dplyr)
 phen <- athaliana_phen(traits = "FRI", rows_order = "snp")
 relmat <- athaliana_relmat()
 
-gdat <- athaliana_snp(chr = 4)
-gdat <- gdat[1:2]
+if(!exists("gdat")) {
+  gdat <- athaliana_snp(chr = 4)
+  gdat <- gdat[1:2]
+}
 
 ### Method 1: rrBLUP::GWAS
 # pheno: 
@@ -77,23 +79,43 @@ Fstat <- beta[p]^2/CovBeta[p, p]
 x <- v2/(v2 + v1 * Fstat)
 pval <- pbeta(x, v2/2, v1/2)
 
-### assoc
+### Raw data: `y` and `g`
 assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), data_snpcov = gdat[1:2], method = "Wald")
 
-### `lme4` model
+# `lme4` model
 dat <- data_frame(y = y, g = g, id = ids)
 m <- relmatLmer(y ~ g + (1|id), dat, relmat = list(id = relmat))
 
-### `lmmlite` model
+# `lmmlite` model
 library(lmmlite)
 
 e <- eigen_rotation(K, y2, X3)
 out <- fitLMM(e$Kva, e$y, e$X)
 
+### Scaled data: `y` and `g`
+# `lme4` model
+dat <- data_frame(y = y, g = g, id = ids)
+dat_sc <- mutate(dat, 
+  y = scale(y), 
+  g = scale(g))
+m_sc <- relmatLmer(y ~ g + (1|id), dat_sc, relmat = list(id = relmat))
 
+# `lmmlite` model
+y2_sc <- scale(y2)
+X3_sc <- X3
+X3_sc[, 2] <- scale(X3_sc[, 2])
 
+e_sc <- eigen_rotation(K, y2_sc, X3_sc)
+out_sc <- fitLMM(e_sc$Kva, e_sc$y, e_sc$X)
 
+### Compare two models: `m` and `m0`
+dat <- data_frame(y = y, g = g, id = ids)
 
+m0 <- relmatLmer(y ~ (1|id), dat, relmat = list(id = relmat))
+m <- relmatLmer(y ~ g + (1|id), dat, relmat = list(id = relmat))
+
+h2_m0 <- with(as.data.frame(VarCorr(m0)), vcov[1] / sum(vcov))
+h2_m <- with(as.data.frame(VarCorr(m)), vcov[1] / sum(vcov))
 
 
 

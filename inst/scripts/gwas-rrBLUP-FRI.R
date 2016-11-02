@@ -61,6 +61,7 @@ pheno2 <- pheno[,c(1,43)]
 colnames(pheno2) <- c("ecoid","FRI")
 
 pheno2$FRI <- log(pheno2$FRI)
+colnames(pheno2) <- c("ecoid","log_FRI")
 
 ### run GWAS
 t1 <- proc.time()

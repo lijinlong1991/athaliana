@@ -67,12 +67,12 @@ colnames(pheno2) <- c("ecoid","log_FRI")
 t1 <- proc.time()
 gwas_rrblup_emmax <- GWAS(pheno=pheno2,geno=geno,P3D=TRUE,n.core=ncores,K=A,plot=F)
 t2 <- proc.time()
-time_gwas_rrblup_emmax <- t2 - t1
+(time_gwas_rrblup_emmax <- t2 - t1)
 
 t1 <- proc.time()
 gwas_rrblup_mm <- GWAS(pheno=pheno2,geno=geno,P3D=FALSE,n.core=ncores,K=A,plot=F)
 t2 <- proc.time()
-time_gwas_rrblup_mm <- t2 - t1
+(time_gwas_rrblup_mm <- t2 - t1)
 
 ### save
 save(gwas_rrblup_emmax, time_gwas_rrblup_emmax, file = "gwas_rrblup_emmax.RData")

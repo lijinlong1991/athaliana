@@ -94,42 +94,62 @@ annot <- athaliana_annot()
 ## Association study of a small subset of snps
 
 ```{r assoc, cache = T}
-assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), data_snpcov = gdat_subset, batch_size = 10, cores = cores)
+#assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), data_snpcov = gdat_subset, batch_size = 10, cores = cores)
 ```
 
 
 ## Association study on all snps
 
+```{r load_gwas, cache = T}
+dir <- "/home/andrey/git/variani/athaliana/results/gwas/FRI"
+load(file.path(dir, "gwas_rrblup_emmax.RData"))
+load(file.path(dir, "gwas_rrblup_mm.RData"))
+load(file.path(dir, "gwas_lmer_wald.RData"))
+load(file.path(dir, "gwas_lmer_lr.RData"))
+```
+
+```{r join_gwas, cache = T}
+tab <- data_frame(marker = gwas_rrblup_emmax$marker, 
+  chrom = gwas_rrblup_emmax$chrom, pos = gwas_rrblup_emmax$pos,
+  pval_emmax = 10^(-gwas_rrblup_emmax$log_FRI),
+  pval_mm = 10^(-gwas_rrblup_mm$log_FRI))
+
+tab <- bind_cols(tab, data_frame(snp = gwas_lmer_wald$snp, pval_wald = gwas_lmer_wald$pval))
+tab <- bind_cols(tab, data_frame(pval_lr = gwas_lmer_lr$pval))
+```  
+  
+```{r pval_diff}
+tab <- mutate(tab,
+  diff_logp_mm_wald = -log10(pval_mm) / -log10(pval_wald))
+```
+
+```{r show_diff}
+tab %>% filter(diff_logp_mm_wald < 0.1)
+```  
+
+## Temp
+
 ```{r gwas, eval = F}
 assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), data_snpcov = gdat, batch_size = 100, cores = cores)
 gwas <- assocLmer(inormal_FRI ~ (1|id), phen, relmat = list(id = relmat), data_snpcov = gdat, format_snpcov = "-11", batch_size = 100, cores = cores)
-```
 
-```{r load_gwas, cache = T}
+
 data("assoc.FRI.rrblup", package = "athaliana") 
-
 assoc <- left_join(as_data_frame(assoc), annot, by = "snp")
-```
 
-```{r assoc_common, cache = T, dependson = "load_gwas"}
 assoc_common <- assoc %>% filter(mac_FRI >= 20)
-```
 
-```{r tab_gwas, echo = FALSE, results = "asis", dependson = "load_gwas"}
 kable(head(assoc))
-```
 
-```{r plot_gwas, fig.show = "hold", cache = T, dependson = "load_gwas"}
 qq(assoc$pval)
 manhattan(assoc, chr = "chr", bp = "pos", p = "pval", snp = "snp",
   suggestiveline = FALSE, genomewideline = -log10(0.05 / nrow(assoc)))
-```
 
-```{r plot_gwas_common, fig.show = "hold", cache = T, dependson = "load_gwas"}
 qq(assoc_common$pval)
 manhattan(assoc_common, chr = "chr", bp = "pos", p = "pval", snp = "snp",
   suggestiveline = FALSE, genomewideline = -log10(0.05 / nrow(assoc_common)))
 ```
+
 
 Also a quote using `>`:
 

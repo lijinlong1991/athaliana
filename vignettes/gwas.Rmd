@@ -11,13 +11,17 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r options, echo = F}
+opts_chunk$set(comment = NA, results = 'markup', tidy = F, message = F, warning = F, echo = T,
+  fig.width = 3, fig.height = 3)
+```
+
+
 ## Settings
 
 ### Parameters
 
 ```{r par}
-chr <- 4
-
 cores <- 2
 ```
 
@@ -27,19 +31,27 @@ cores <- 2
 library(dplyr)
 library(Matrix)
 
-library(athaliana)
-
-library(lme4qtl)
-
-library(solarius)
+library(rrBLUP)
 library(qqman)
+```
+
+```{r inc2}
+library(devtools)
+load_all("~/git/variani/athaliana")
+load_all("~/git/hemostat/lme4qtl")
+```
+
+### Settings
+
+```{r settings}
+theme_set(theme_light())
 ```
 
 ## Load the data
 
 ### Phenotypes
 
-```{r data_phen, cache = T}
+```{r load_phen, cache = T}
 phen <- athaliana_phen(traits = "FRI", rows_order = "snp")
 ```
 
@@ -49,7 +61,7 @@ kable(head(phen))
 
 ```{r transofrm_phen}
 phen <- mutate(phen, 
-  inormal_FRI = solarius::transformTrait(FRI, "inormal"))
+  log_FRI = log(FRI))
 ```
 
 ### Pre-computed GRM
@@ -58,7 +70,7 @@ phen <- mutate(phen,
 relmat <- athaliana_relmat()
 ```
 
-```{r plot_relmat, fig.show = "hold", cache = TRUE, dependson = "data_relmat"}
+```{r plot_relmat, fig.width = 3, fig.height = 3, fig.show = "hold", cache = TRUE, dependson = "data_relmat"}
 image(Matrix(relmat))
 image(Matrix(relmat[1:5, 1:5]))
 ```
@@ -70,12 +82,12 @@ kable(relmat[1:5, 1:5], digits = 2)
 ### Genotypes
 
 ```{r gdata, cache = TRUE}
-gdat <- athaliana_snp(chr = chr)
+gdat <- athaliana_snp()
   
 gdat_subset <- gdat[1:20]
 ```
 
-```{r tab_gdat, echo = FALSE, results = "asis"}
+```{r tab_gdat, echo = FALSE, results = "asis", cache = T}
 kable(head(select(gdat, 1:5)))
 ```
 
@@ -88,27 +100,51 @@ annot <- athaliana_annot()
 ## Polygenic model
 
 ```{r poly, cache = T}
-(poly <- relmatLmer(inormal_FRI ~ (1|id), phen, relmat = list(id = relmat)))
+(poly <- relmatLmer(log_FRI ~ (1|id), phen, relmat = list(id = relmat)))
 ```
 
 ## Association study of a small subset of snps
 
-```{r assoc, cache = T}
-#assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), data_snpcov = gdat_subset, batch_size = 10, cores = cores)
+### eigen-based model
+
+```{r run_GWAS}
+run_GWAS <- function(phen, gdat, ...) 
+{
+  gmat <- t(gdat[-1])
+  ids <- gdat[[1]]
+  colnames(gmat) <- ids
+  
+  pheno <- phen[c("ecotype_id", "log_FRI")]
+  geno <- bind_cols(data_frame(snp = names(gdat)[-1], chr = 0, pos = 0), as_data_frame(gmat))
+  
+  GWAS(as.data.frame(pheno), as.data.frame(geno), ...)
+}  
+```
+
+```{r assoc_mm, cache = T} 
+assoc_mm <- as_data_frame(run_GWAS(phen, gdat_subset, P3D = FALSE, n.core = cores, K = relmat, plot = FALSE))
+```
+
+### lmer model
+
+```{r assoc_lmer, cache = T}
+assoc_lmer <- assocLmer(log_FRI ~ (1|id), phen, relmat = list(id = relmat), 
+  data_snpcov = gdat_subset, method = "Wald",
+  batch_size = 10, cores = cores)
 ```
 
 
 ## Association study on all snps
 
-```{r load_gwas, cache = T}
+```{r load_gwas, cache = T, echo = F}
 dir <- "/home/andrey/git/variani/athaliana/results/gwas/FRI"
 load(file.path(dir, "gwas_rrblup_emmax.RData"))
 load(file.path(dir, "gwas_rrblup_mm.RData"))
 load(file.path(dir, "gwas_lmer_wald.RData"))
-load(file.path(dir, "gwas_lmer_lr.RData"))
+load(file.path(dir, "gwas_lmer_lr.RData")) 
 ```
 
-```{r join_gwas, cache = T}
+```{r join_gwas, cache = T, echo = F}
 tab <- data_frame(marker = gwas_rrblup_emmax$marker, 
   chrom = gwas_rrblup_emmax$chrom, pos = gwas_rrblup_emmax$pos,
   pval_emmax = 10^(-gwas_rrblup_emmax$log_FRI),
@@ -116,16 +152,31 @@ tab <- data_frame(marker = gwas_rrblup_emmax$marker,
 
 tab <- bind_cols(tab, data_frame(snp = gwas_lmer_wald$snp, pval_wald = gwas_lmer_wald$pval))
 tab <- bind_cols(tab, data_frame(pval_lr = gwas_lmer_lr$pval))
+
+tab <- filter(tab, pval_emmax < 1 | pval_mm < 1)
 ```  
-  
-```{r pval_diff}
-tab <- mutate(tab,
-  diff_logp_mm_wald = -log10(pval_mm) / -log10(pval_wald))
+
+
+### Manhattan plot
+
+```{r man, cache = T, fig.width = 6, fig.height = 4, echo = F}
+manhattan(tab, chr = "chrom", bp = "pos", p = "pval_wald", snp = "snp", suggestiveline = FALSE, genomewideline = -log10(0.05 / nrow(tab)))
 ```
 
-```{r show_diff}
-tab %>% filter(diff_logp_mm_wald < 0.1)
-```  
+### QQ plot
+
+```{r qq, cache = T, echo = F}
+qq(tab$pval_wald)
+```
+
+### Are p-values consistent across methods?
+
+
+```{r plot_pval1, fig.width = 3, fig.height = 3, fig.show = "hold", cache = TRUE, echo = F}
+ggplot(tab, aes(-log10(pval_emmax), -log10(pval_mm))) + geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = 3) + coord_equal()
+ggplot(tab, aes(marker, -log10(pval_mm/pval_emmax))) + geom_point()
+```
 
 ## Temp
 

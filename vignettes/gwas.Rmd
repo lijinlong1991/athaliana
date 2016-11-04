@@ -31,6 +31,8 @@ cores <- 2
 library(dplyr)
 library(Matrix)
 
+library(ggplot2)
+
 library(rrBLUP)
 library(qqman)
 ```

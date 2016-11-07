@@ -167,44 +167,73 @@ manhattan(tab, chr = "chrom", bp = "pos", p = "pval_wald", snp = "snp", suggesti
 
 ### QQ plot
 
-```{r qq, cache = T, echo = F}
+```{r qq, fig.width = 6, fig.height = 6, cache = T, echo = F}
 qq(tab$pval_wald)
 ```
 
 ### Are p-values consistent across methods?
 
+#### `mm` _vs._ `emmax`
+
+The figure below compares two methods `mm` and `emmax` in terms of diffence in p-values at log scale.
+Given that `mm` is an exact method and `emmax` is an approximation,
+the left panel shows that `emmax` underestimates the significance of effects.
+
+The right panel points out that this is generally the case for the most significant effects
+(located on the right to the vertical line at `-log10(pval)` equal to `5`).
+These SNPs are likely to influence the estimation of variance components, i.e. heritability.
 
 ```{r plot_pval1, fig.width = 3, fig.height = 3, fig.show = "hold", cache = TRUE, echo = F}
 ggplot(tab, aes(-log10(pval_emmax), -log10(pval_mm))) + geom_point() +
   geom_abline(slope = 1, intercept = 0, linetype = 3) + coord_equal()
-ggplot(tab, aes(marker, -log10(pval_mm/pval_emmax))) + geom_point()
+
+ggplot(tab, aes(-log10(pval_mm), -log10(pval_mm/pval_emmax))) + geom_point() +
+  geom_hline(yintercept = 1, linetype = 2) + geom_vline(xintercept = 5, linetype = 2)
 ```
 
-## Temp
+#### `mm` _vs._ `wald`
 
-```{r gwas, eval = F}
-assoc <- assocLmer(FRI ~ (1|id), phen, relmat = list(id = relmat), data_snpcov = gdat, batch_size = 100, cores = cores)
-gwas <- assocLmer(inormal_FRI ~ (1|id), phen, relmat = list(id = relmat), data_snpcov = gdat, format_snpcov = "-11", batch_size = 100, cores = cores)
+Two methods `mm` and `wald` follows the same approach of using mixed models estimated for every SNP,
+and the Wald test is used to derive the p-value of association.
 
+The figure shows the perfect match of the two methods. 
+That means two implementations of the method in R packages `rrBLUP` and `lme4qtl` are consistent.
 
-data("assoc.FRI.rrblup", package = "athaliana") 
-assoc <- left_join(as_data_frame(assoc), annot, by = "snp")
-
-assoc_common <- assoc %>% filter(mac_FRI >= 20)
-
-kable(head(assoc))
-
-qq(assoc$pval)
-manhattan(assoc, chr = "chr", bp = "pos", p = "pval", snp = "snp",
-  suggestiveline = FALSE, genomewideline = -log10(0.05 / nrow(assoc)))
-
-qq(assoc_common$pval)
-manhattan(assoc_common, chr = "chr", bp = "pos", p = "pval", snp = "snp",
-  suggestiveline = FALSE, genomewideline = -log10(0.05 / nrow(assoc_common)))
+```{r plot_pval2, fig.width = 3, fig.height = 3, fig.show = "hold", cache = TRUE, echo = F}
+ggplot(tab, aes(-log10(pval_wald), -log10(pval_mm))) + geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = 3) + coord_equal()
 ```
 
+#### `wald` _vs._ `lr`
 
-Also a quote using `>`:
+Two mehtods implemented in the `lme4qtl` package employs different tests in the mixed model fraework:
+the Wald test and the LRT.
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+The figure below shows the different in p-values for these two methods.
+
+```{r plot_pval3, fig.width = 3, fig.height = 3, fig.show = "hold", cache = TRUE, echo = F}
+ggplot(tab, aes(-log10(pval_lr), -log10(pval_wald))) + geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = 3) + coord_equal()
+
+ggplot(tab, aes(-log10(pval_wald), -log10(pval_wald/pval_lr))) + geom_point() +
+  geom_hline(yintercept = 1, linetype = 2) + geom_vline(xintercept = 5, linetype = 2)
+```
+
+The previous figure is not enough to get an idea about the distribution of differences.
+The two histograms give a clue on what is happening.
+One histogram on the left is for all the SNPs,
+and another on the right is for a subset of SNPs 
+where the difference in p-values at log scale is between `-2` and `2`,
+
+```{r plot_pval3_hist, fig.width = 3, fig.height = 3, fig.show = "hold", cache = TRUE, echo = F}
+ggplot(tab, aes( -log10(pval_wald/pval_lr))) + geom_histogram()
+
+ggplot(tab, aes( -log10(pval_wald/pval_lr))) + geom_histogram() + xlim(c(-2, 2))
+```
+
+How many SNPs have a relatively large diffrenece in p-values at log scale?
+`r with(tab, sum(abs(-log10(pval_wald / pval_lr)) > 1))` SNPs have the absolute value more than `1`,
+and 
+`r with(tab, sum(abs(-log10(pval_wald / pval_lr)) > 2))` SNPs have the absolute value more than `2`.
+The total number of SNPs is `r nrow(tab)`.
+

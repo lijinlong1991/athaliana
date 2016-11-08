@@ -193,10 +193,12 @@ ggplot(tab, aes(-log10(pval_mm), -log10(pval_mm/pval_emmax))) + geom_point() +
 
 #### `mm` _vs._ `wald`
 
-Two methods `mm` and `wald` follows the same approach of using mixed models estimated for every SNP,
-and the Wald test is used to derive the p-value of association.
+Two methods `mm` and `wald` follows the same approach of using mixed models:
 
-The figure shows the perfect match of the two methods. 
+* the variance components are  estimated for every SNP;
+* the Wald test is used to derive the p-value of association.
+
+The figure shows the perfect match of the results for the two methods. 
 That means two implementations of the method in R packages `rrBLUP` and `lme4qtl` are consistent.
 
 ```{r plot_pval2, fig.width = 3, fig.height = 3, fig.show = "hold", cache = TRUE, echo = F}
@@ -206,7 +208,7 @@ ggplot(tab, aes(-log10(pval_wald), -log10(pval_mm))) + geom_point() +
 
 #### `wald` _vs._ `lr`
 
-Two mehtods implemented in the `lme4qtl` package employs different tests in the mixed model fraework:
+Two mehtods implemented in the `lme4qtl` package employs different tests in the mixed model framework:
 the Wald test and the LRT.
 
 The figure below shows the different in p-values for these two methods.
@@ -220,7 +222,7 @@ ggplot(tab, aes(-log10(pval_wald), -log10(pval_wald/pval_lr))) + geom_point() +
 ```
 
 The previous figure is not enough to get an idea about the distribution of differences.
-The two histograms give a clue on what is happening.
+The next two histograms give a clue on what is happening.
 One histogram on the left is for all the SNPs,
 and another on the right is for a subset of SNPs 
 where the difference in p-values at log scale is between `-2` and `2`,
@@ -236,4 +238,10 @@ How many SNPs have a relatively large diffrenece in p-values at log scale?
 and 
 `r with(tab, sum(abs(-log10(pval_wald / pval_lr)) > 2))` SNPs have the absolute value more than `2`.
 The total number of SNPs is `r nrow(tab)`.
+
+Overall, one can not say that one or another method underestimates the significance of effects,
+because the histrograms are symmetric in relation to zero.
+However, it is clear from the scatter plot that the `lr` method underestimates the effects 
+for those top SNPs which show the most significant association.
+
 

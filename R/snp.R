@@ -128,26 +128,26 @@ athaliana_compute_relmat_rrblup <- function(snp)
 }
 
 #' @export
-athaliana_rdata_relmat <- function() 
+athaliana_rds_relmat <- function() 
 {
-  "relmat.RData"
+  "relmat.rds"
 }
 
 #' @export
 athaliana_write_relmat <- function(relmat, 
   dir = file.path(athaliana_path(), athaliana_dir_rawdata()))
 {
-  file <- file.path(dir, athaliana_rdata_relmat())
+  file <- file.path(dir, athaliana_rds_relmat())
   
-  save(relmat, file = file)
+  saveRDS(relmat, file = file)
 }
 
 #' @export
 athaliana_relmat <- function(dir = file.path(athaliana_path(), athaliana_dir_rawdata()))
 {
-  file <- file.path(dir, athaliana_rdata_relmat())
+  file <- file.path(dir, athaliana_rds_relmat())
   
-  load(file)
+  relmat <- readRDS(file)
   
   return(relmat)
 }

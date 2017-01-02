@@ -30,6 +30,29 @@ panderOptions('knitr.auto.asis', FALSE)
 
 `athaliana` is an R *data* package for the A. thaliana data set https://github.com/Gregor-Mendel-Institute/atpolydb. 
 
+## Data preparation
+
+Files to download:
+
+| Data | File name   | Url |
+|:-----|:------------|:----|
+| phen. | `athaliana_filename_phen()` | `athaliana_url_phen()` |
+| SNP | `athaliana_filename_snp()` | `athaliana_url_snp()` |
+
+R commands to download:
+
+```{r download, eval = F}
+athaliana_download_phen() # athaliana_download_phen(method = "wget")
+athaliana_download_snp() 
+```
+
+```{r write, eval = F}
+athaliana_write_relmat()
+
+athaliana_write_snp()
+athaliana_write_map()       
+```
+
 ## Code examples
 
 ### A simple polygenic model

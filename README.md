@@ -6,6 +6,18 @@ About
 
 `athaliana` is an R *data* package for the A. thaliana data set <https://github.com/Gregor-Mendel-Institute/atpolydb>.
 
+Data preparation
+----------------
+
+Files to download:
+
+| Data  | File name                   | Url                    |
+|:------|:----------------------------|:-----------------------|
+| phen. | `athaliana_filename_phen()` | `athaliana_url_phen()` |
+| SNP   | `athaliana_filename_snp()`  | `athaliana_url_snp()`  |
+
+R commands to download:
+
 Code examples
 -------------
 
@@ -24,11 +36,11 @@ library(lme4qtl)
     Linear mixed model fit by REML ['lmerMod']
     Formula: FRI ~ (1 | id)
        Data: phen
-    REML criterion at convergence: 327.9857
+    REML criterion at convergence: 328.4603
     Random effects:
      Groups   Name        Std.Dev.
-     id       (Intercept) 0.3232  
-     Residual             0.4873  
+     id       (Intercept) 0.4524  
+     Residual             0.4926  
     Number of obs: 164, groups:  id, 164
     Fixed Effects:
     (Intercept)  

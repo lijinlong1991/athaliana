@@ -18,6 +18,22 @@ Files to download:
 
 R commands to download:
 
+``` r
+athaliana_download_phen() # athaliana_download_phen(method = "wget")
+athaliana_download_snp() 
+```
+
+R commands to put data in a proper format:
+
+``` r
+athaliana_write_snp()
+athaliana_write_map()       
+
+snp <- athaliana_snp()
+relmat <- athaliana_compute_relmat(snp)
+athaliana_write_relmat(relmat)
+```
+
 Code examples
 -------------
 

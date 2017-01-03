@@ -41,12 +41,14 @@ Files to download:
 
 R commands to download:
 
-```{r download, eval = F}
+```{r download, eval = F, echo = T}
 athaliana_download_phen() # athaliana_download_phen(method = "wget")
 athaliana_download_snp() 
 ```
 
-```{r write, eval = F}
+R commands to put data in a proper format:
+
+```{r write, eval = F, echo = T}
 athaliana_write_snp()
 athaliana_write_map()       
 

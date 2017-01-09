@@ -85,11 +85,11 @@ athaliana_compute_annot_global <- function(snp, phen, ...)
 #-----------------------------------
 
 #' @export
-athaliana_compute_relmat <- function(snp) 
+athaliana_compute_relmat <- function(snp, center = TRUE, scale = TRUE) 
 {
   ### prepare the matrix of genotypes: to be centered / scaled
   mat <- as.matrix(snp[-1])
-  mat <- scale(mat, center = TRUE, scale = TRUE)
+  mat <- scale(mat, center = center, scale = scale)
 
   ### var
   M <- ncol(mat)
@@ -103,7 +103,6 @@ athaliana_compute_relmat <- function(snp)
   
   return(relmat)
 }
-
 
 #' @export
 athaliana_compute_relmat_rrblup <- function(snp) 

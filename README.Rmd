@@ -42,8 +42,8 @@ Files to download:
 R commands to download:
 
 ```{r download, eval = F, echo = T}
-athaliana_download_phen() # athaliana_download_phen(method = "wget")
-athaliana_download_snp() 
+athaliana_download_phen(method = "wget")
+athaliana_download_snp(method = "wget")
 ```
 
 R commands to put data in a proper format:
@@ -53,8 +53,8 @@ athaliana_write_snp()
 athaliana_write_map()       
 
 snp <- athaliana_snp()
-relmat <- athaliana_compute_relmat(snp)
-athaliana_write_relmat(relmat)
+relmat <- athaliana_compute_relmat(snp, center = TRUE, scale = TRUE)
+athaliana_write_relmat(relmat, filename = "relmat_centered.rds")
 ```
 
 ## Code examples
@@ -67,7 +67,7 @@ for one of the traits (`FRI`).
 
 ```{r poly, echo = T}
 phen <- athaliana_phen(traits = "FRI")
-relmat <- athaliana_relmat()
+relmat <- athaliana_relmat(filename = "relmat_std.rds")
 
 library(lme4qtl)
 (m <- relmatLmer(FRI ~ (1|id), phen, relmat = list(id = relmat)))
